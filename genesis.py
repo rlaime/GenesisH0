@@ -30,7 +30,7 @@ def get_args():
   parser.add_option("-n", "--nonce", dest="nonce", default=0,
                    type="int", help="the first value of the nonce that will be incremented when searching the genesis hash")
   parser.add_option("-a", "--algorithm", dest="algorithm", default="SHA256",
-                    help="the PoW algorithm: [SHA256|scrypt|X11|X13|X15]")
+                    help="the PoW algorithm: [SHA256|scrypt|X11|X13|X15|C11]")
   parser.add_option("-p", "--pubkey", dest="pubkey", default="04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f",
                    type="string", help="the pubkey found in the output script")
   parser.add_option("-v", "--value", dest="value", default=5000000000,
@@ -40,14 +40,14 @@ def get_args():
 
   (options, args) = parser.parse_args()
   if not options.bits:
-    if options.algorithm == "scrypt" or options.algorithm == "X11" or options.algorithm == "X13" or options.algorithm == "X15":
+    if options.algorithm == "scrypt" or options.algorithm == "X11" or options.algorithm == "X13" or options.algorithm == "X15" or options.algorithm == "C11":
       options.bits = 0x1e0ffff0
     else:
       options.bits = 0x1d00ffff
   return options
 
 def get_algorithm(options):
-  supported_algorithms = ["SHA256", "scrypt", "X11", "X13", "X15"]
+  supported_algorithms = ["SHA256", "scrypt", "X11", "X13", "X15", "C11" ]
   if options.algorithm in supported_algorithms:
     return options.algorithm
   else:
@@ -132,7 +132,7 @@ def generate_hash(data_block, algorithm, start_nonce, bits):
     sha256_hash, header_hash = generate_hashes_from_block(data_block, algorithm)
     last_updated             = calculate_hashrate(nonce, last_updated)
     if is_genesis_hash(header_hash, target):
-      if algorithm == "X11" or algorithm == "X13" or algorithm == "X15":
+      if algorithm == "X11" or algorithm == "X13" or algorithm == "X15" or algorithm == "C11":
         return (header_hash, nonce)
       return (sha256_hash, nonce)
     else:
@@ -147,6 +147,12 @@ def generate_hashes_from_block(data_block, algorithm):
     header_hash = scrypt.hash(data_block,data_block,1024,1,1,32)[::-1] 
   elif algorithm == 'SHA256':
     header_hash = sha256_hash
+  elif algorithm == 'C11':
+    try:
+      exec('import %s' % "c11_hash")
+    except ImportError:
+      sys.exit("Cannot run C11 algorithm: module c11_hash not found")
+    header_hash = c11_hash.getPoWHash(data_block)[::-1]
   elif algorithm == 'X11':
     try:
       exec('import %s' % "xcoin_hash")

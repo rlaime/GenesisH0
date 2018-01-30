@@ -57,7 +57,7 @@ Create the original genesis hash found in HiroCoin (requires [xcoin-hash](https:
          the first value of the nonce that will be incremented
          when searching the genesis hash
       -a ALGORITHM, --algorithm=ALGORITHM
-         the PoW algorithm: [SHA256|scrypt|X11|X13|X15]
+         the PoW algorithm: [SHA256|scrypt|X11|X13|X15|C11]
       -p PUBKEY, --pubkey=PUBKEY
          the pubkey found in the output script
       -v VALUE, --value=VALUE
